@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Send, Mic, MicOff, Paperclip, Image, X } from "lucide-react";
-import { geminiModel, SYSTEM_PROMPT } from "@/lib/gemini";
+import { Send, Mic, MicOff, Paperclip, X } from "lucide-react";
 import { useData } from "@/context/DataContext";
 import { ChatMessage } from "@/lib/types";
 
@@ -86,34 +85,29 @@ export default function ChatBot() {
           parts: [{ text: m.content }],
         }));
 
-      const today = new Date().toISOString().split("T")[0];
-      const systemWithDate = `${SYSTEM_PROMPT}\n\nData de hoje: ${today}`;
-
-      let parts: any[] = [{ text: content || "Analise este arquivo e extraia informações financeiras." }];
-
+      let fileData = null;
       if (file) {
         const bytes = await file.arrayBuffer();
         const base64 = btoa(
           new Uint8Array(bytes).reduce((data, byte) => data + String.fromCharCode(byte), "")
         );
-        parts.push({
-          inlineData: {
-            mimeType: file.type,
-            data: base64,
-          },
-        });
+        fileData = { mimeType: file.type, data: base64 };
       }
 
-      const chat = geminiModel.startChat({
-        history: [
-          { role: "user", parts: [{ text: systemWithDate }] },
-          { role: "model", parts: [{ text: "Entendido! Estou pronto para ajudar com suas finanças." }] },
-          ...chatHistory,
-        ],
+      const res = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: content,
+          history: chatHistory,
+          fileData,
+        }),
       });
 
-      const result = await chat.sendMessage(parts);
-      const aiText = result.response.text();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Erro na API");
+
+      const aiText = data.text;
       const processedText = await processAIResponse(aiText);
 
       const aiMessage: ChatMessage = {
