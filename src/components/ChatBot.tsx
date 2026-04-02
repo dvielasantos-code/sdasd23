@@ -118,14 +118,14 @@ export default function ChatBot() {
       };
 
       setMessages((prev) => [...prev, aiMessage]);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao enviar mensagem:", error);
       setMessages((prev) => [
         ...prev,
         {
           id: (Date.now() + 1).toString(),
           role: "assistant",
-          content: "Ops, deu um erro aqui. Tenta de novo!",
+          content: `Erro: ${error?.message || "Desconhecido"}. Tenta de novo!`,
           timestamp: Date.now(),
         },
       ]);
