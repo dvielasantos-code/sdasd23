@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { message, history, fileData } = body;
 
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" });
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
     const today = new Date().toISOString().split("T")[0];
     const systemWithDate = `${SYSTEM_PROMPT}\n\nData de hoje: ${today}`;
